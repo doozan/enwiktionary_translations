@@ -1,0 +1,68 @@
+#!/usr/bin/python3
+#
+# Copyright (c) 2021 Jeff Doozan
+#
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Extracts translation sections from wiktionary entries
+"""
+
+import os
+import re
+import sys
+from pywikibot import xmlreader
+from autodooz.sectionparser import SectionParser
+
+def main():
+
+    import argparse
+    argparser = argparse.ArgumentParser(description="Find lemmas with only 'form of' senses")
+    argparser.add_argument("--xml", help="xml dump to read", required=True)
+    argparser.add_argument("--limit", type=int, help="Limit processing to first N articles")
+    argparser.add_argument("--progress", help="Display progress", action='store_true')
+    args = argparser.parse_args()
+
+    if not os.path.isfile(args.xml):
+        raise FileNotFoundError(f"Cannot open: {args.xml}")
+
+    dump = xmlreader.XmlDump(args.xml)
+    parser = dump.parse()
+    count = 0
+    seen = set()
+    for page in parser:
+        if ":" in page.title or "/" in page.title:
+            continue
+
+        if not count % 1000 and args.progress:
+            print(count, end = '\r', file=sys.stderr)
+
+        if args.limit and count >= args.limit:
+            break
+        count += 1
+
+        if "===Translations===" not in page.text:
+            continue
+
+        entry = SectionParser(page.text, page.title)
+        for section in entry.ifilter_sections(matches=lambda x: x.title == "Translations"):
+            path = ":".join(reversed(list(section.parent.lineage)))
+#            if path in seen:
+#                print("duplicate", path, file=sys.stderr)
+            seen.add(path)
+            print(f"_____{path}_____")
+            print(section.lines)
+
+if __name__ == "__main__":
+    main()
