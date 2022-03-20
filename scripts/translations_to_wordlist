@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+#
+# Copyright (c) 2021 Jeff Doozan
+#
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Convert a translations archive into a language wordlist
+"""
+
+import sys
+from enwiktionary_translations import TranslationTable, TranslationLine, UNKNOWN_LANGS, LANG_PARENTS
+from enwiktionary_parser.languages.all_ids import languages as lang_ids
+from enwiktionary_parser.sections.pos import ALL_POS
+from enwiktionary_wordlist.language_extract import LanguageFile
+from enwiktionary_wordlist.wordlist import Wordlist
+from enwiktionary_wordlist.wordlist_builder import WordlistBuilder
+from enwiktionary_wordlist.utils import wiki_to_text
+
+def main():
+
+    import argparse
+    argparser = argparse.ArgumentParser(description="Find lemmas with only 'form of' senses")
+    argparser.add_argument("--trans", help="Extract file to read", required=True)
+    argparser.add_argument("--langid", help="Language to extract", required=True)
+    argparser.add_argument("--limit", type=int, help="Limit processing to first N articles")
+    argparser.add_argument("--progress", help="Display progress", action='store_true')
+    args = argparser.parse_args()
+
+#    lang = lang_ids[args.langid]
+
+
+    wordlist = Wordlist()
+    entry = []
+    entry_page = None
+    entry_pos = None
+    count = 0
+    for pathstr, text in LanguageFile.iter_articles(args.trans):
+        path = pathstr.split(":")
+        page = path[0]
+        pos_title = path[-1]
+        pos = ALL_POS.get(pos_title, pos_title)
+
+        count += 1
+        if not count % 1000 and args.progress:
+            print(count, end = '\r', file=sys.stderr)
+        if args.limit and count > args.limit:
+            break
+
+        tables = list(TranslationTable.find_tables(text))
+        if page != entry_page:
+            if entry:
+                wordlist.all_entries[entry_page] = map(str.strip, entry)
+                entry_page = None
+            entry = []
+
+
+        for table_lines in tables:
+            table_lines = table_lines.splitlines()
+
+            table = TranslationTable(page, pos, table_lines, log_function=lambda *x: x)
+            for item in [i for i in table.items if getattr(i, "lang_id", None) == args.langid]:
+                if not entry:
+                    entry = [f"_____{page}_____"]
+                    entry_page = page
+                    entry_pos = None
+                if pos != entry_pos:
+                    entry.append(f"pos: {pos}")
+                    entry_pos = pos
+
+                entry.append(f"  gloss: {table.gloss}: {wiki_to_text(item._entries, entry_page)}")
+
+    if entry:
+        wordlist.all_entries[entry_page] = map(str.lstrip, entry)
+
+    for entry in WordlistBuilder.from_wordlist(wordlist, exclude_empty=True, exclude_generated=False):
+        print(entry)
+
+if __name__ == "__main__":
+    main()
