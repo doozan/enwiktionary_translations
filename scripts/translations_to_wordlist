@@ -23,7 +23,7 @@ import sys
 from enwiktionary_translations import TranslationTable, TranslationLine, UNKNOWN_LANGS, LANG_PARENTS
 from enwiktionary_parser.languages.all_ids import languages as lang_ids
 from enwiktionary_parser.sections.pos import ALL_POS
-from enwiktionary_wordlist.language_extract import LanguageFile
+from enwiktionary_wordlist.wikiextract import WikiExtractWithRev
 from enwiktionary_wordlist.wordlist import Wordlist
 from enwiktionary_wordlist.wordlist_builder import WordlistBuilder
 from enwiktionary_wordlist.utils import wiki_to_text
@@ -46,8 +46,9 @@ def main():
     entry_page = None
     entry_pos = None
     count = 0
-    for pathstr, text in LanguageFile.iter_articles(args.trans):
-        path = pathstr.split(":")
+    for article in WikiExtractWithRev.iter_articles_from_bz2(args.trans):
+        text = article.text
+        path = article.title.split(":")
         page = path[0]
         pos_title = path[-1]
         pos = ALL_POS.get(pos_title, pos_title)
