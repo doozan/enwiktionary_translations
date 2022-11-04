@@ -55,7 +55,6 @@ class TranslationTable():
             pretext, template, params, posttext = res
 
         if not res or template not in self.TOP_TEMPLATES:
-            raise ValueError("cannot parse header")
             self.error("unparsable_header", line)
             return
 
