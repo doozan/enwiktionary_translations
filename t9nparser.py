@@ -3,8 +3,7 @@ import re
 from collections import defaultdict
 
 from enwiktionary_parser.utils import nest_aware_split, wiki_search
-from enwiktionary_parser.languages.all_ids import languages as lang_ids
-ALL_LANGS = {v:k for k,v in lang_ids.items()}
+from enwiktionary_parser.languages.all_ids import ALL_LANGS, ALL_LANG_IDS
 
 from .language_aliases import language_aliases as LANG_ALIASES, language_parents as ALLOWED_PARENTS
 
@@ -172,6 +171,10 @@ class TranslationTable():
                 continue
 
             if re.match(self.RE_ALLOWED_LINES, line):
+                if False and line.strip() == "{{trans-mid}}":
+                    self.log("removed_mid")
+                    continue
+
                 items.append(line)
                 continue
 
@@ -236,7 +239,7 @@ class TranslationLine():
     def log(self, error, highlight=""):
         if not self.parent:
             return
-        self.parent.log(error, self._orig, highlight, language=lang_ids[self.lang_id])
+        self.parent.log(error, self._orig, highlight, language=ALL_LANG_IDS[self.lang_id])
 
     def error(self, error, highlight=""):
         self.has_errors = True

@@ -21,7 +21,6 @@ Convert a translations archive into a language wordlist
 
 import sys
 from enwiktionary_translations import TranslationTable, TranslationLine, UNKNOWN_LANGS, LANG_PARENTS
-from enwiktionary_parser.languages.all_ids import languages as lang_ids
 from enwiktionary_parser.sections.pos import ALL_POS
 from enwiktionary_wordlist.wikiextract import WikiExtractWithRev
 from enwiktionary_wordlist.wordlist import Wordlist
@@ -37,9 +36,6 @@ def main():
     argparser.add_argument("--limit", type=int, help="Limit processing to first N articles")
     argparser.add_argument("--progress", help="Display progress", action='store_true')
     args = argparser.parse_args()
-
-#    lang = lang_ids[args.langid]
-
 
     wordlist = Wordlist()
     entry = []
