@@ -19,11 +19,11 @@
 Extracts translation sections from wiktionary entries
 """
 
+import enwiktionary_sectionparser as sectionparser
 import os
 import re
 import sys
 from pywikibot import xmlreader
-from autodooz.sectionparser import SectionParser
 
 def main():
 
@@ -55,7 +55,10 @@ def main():
         if "===Translations===" not in page.text:
             continue
 
-        entry = SectionParser(page.text, page.title)
+        entry = sectionparser.parse(page.text, page.title)
+        if not entry:
+            continue
+
         for section in entry.ifilter_sections(matches=lambda x: x.title == "Translations"):
             path = ":".join(reversed(list(section.parent.lineage)))
 #            if path in seen:
