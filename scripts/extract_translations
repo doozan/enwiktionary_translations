@@ -24,24 +24,30 @@ import os
 import re
 import sys
 from pywikibot import xmlreader
+from enwiktionary_wordlist.wikiextract import WikiExtractWithRev
 
 def main():
 
     import argparse
     argparser = argparse.ArgumentParser(description="Find lemmas with only 'form of' senses")
-    argparser.add_argument("--xml", help="xml dump to read", required=True)
+    argparser.add_argument("--xml", help="xml dump to read")
+    argparser.add_argument("--wxt", help="Read articles from specified extract data file")
     argparser.add_argument("--limit", type=int, help="Limit processing to first N articles")
     argparser.add_argument("--progress", help="Display progress", action='store_true')
     args = argparser.parse_args()
 
-    if not os.path.isfile(args.xml):
-        raise FileNotFoundError(f"Cannot open: {args.xml}")
 
-    dump = xmlreader.XmlDump(args.xml)
-    parser = dump.parse()
+    if args.wxt:
+        iter_pages = WikiExtractWithRev.iter_articles_from_bz2(args.wxt)
+    elif args.xml:
+        dump = xmlreader.XmlDump(args.xml)
+        iter_pages = dump.parse()
+    else:
+        raise ValueError("must supply --xml or --wxt")
+
     count = 0
     seen = set()
-    for page in parser:
+    for page in iter_pages:
         if ":" in page.title or "/" in page.title:
             continue
 
