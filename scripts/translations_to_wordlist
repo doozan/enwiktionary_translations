@@ -69,7 +69,6 @@ def main():
             table = TranslationTable(page, pos, table_lines, log_function=lambda *x: x)
             for item in [i for i in table.items if getattr(i, "lang_id", None) == args.langid]:
                 if not entry:
-                    entry = [f"_____{page}_____"]
                     entry_page = page
                     entry_pos = None
                 if pos != entry_pos:
