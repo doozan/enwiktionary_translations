@@ -71,7 +71,7 @@ def main():
 #                print("duplicate", path, file=sys.stderr)
             seen.add(path)
             print(f"_____{path}_____")
-            print(section.lines)
+            print(section.content_text)
 
 if __name__ == "__main__":
     main()
