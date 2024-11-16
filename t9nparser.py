@@ -359,11 +359,13 @@ class Translation():
 
     T_TEMPLATES = {
         't',
-        't+',
         'tt',
+        't+',
         'tt+',
         't-check',
+        'tt-check',
         't+check',
+        'tt+check',
         't-egy',
         'tt-egy',
         't-check-egy',
