@@ -2,8 +2,9 @@ import re
 
 from collections import defaultdict
 
-from enwiktionary_parser.utils import nest_aware_split, wiki_search
-from enwiktionary_parser.languages.all_ids import ALL_LANGS, ALL_LANG_IDS
+from autodooz.utils import nest_aware_split
+from autodooz.lang_ids import ALL_LANGS, ALL_LANG_IDS
+from enwiktionary_sectionparser.utils import wiki_finditer as wiki_search
 
 from .language_aliases import language_aliases as LANG_ALIASES, language_parents as ALLOWED_PARENTS
 
