@@ -4,20 +4,17 @@ from collections import defaultdict
 
 from autodooz.utils import nest_aware_split
 from autodooz.lang_ids import ALL_LANGS, ALL_LANG_IDS
-from enwiktionary_sectionparser.utils import wiki_finditer as wiki_search
 
 from .language_aliases import language_aliases as LANG_ALIASES, language_parents as ALLOWED_PARENTS
-
-UNKNOWN_LANGS = defaultdict(lambda: defaultdict(int))
-LANG_PARENTS = defaultdict(int)
-LANG_STATS = defaultdict(int)
 
 class TranslationTable():
 
     TOP_TEMPLATES = ("trans-top", "trans-top-see", "trans-top-also", "checktrans-top", "ttbc-top")
     BOTTOM_TEMPLATES = ("checktrans-bottom", "trans-bottom", "ttbc-bottom")
-    RE_TOP_TEMPLATES = "|".join(TOP_TEMPLATES)
-    RE_BOTTOM_TEMPLATES = "|".join(BOTTOM_TEMPLATES)
+
+    # Used for debugging
+    UNKNOWN_LANGS = defaultdict(lambda: defaultdict(int))
+    LANG_PARENTS = defaultdict(int)
 
     # Lines than can appear in the table without generating an error
     ALLOWED_LINES = ["{{trans-mid}}", "{{trans-bottom}}", r"{{multitrans\|data=", "}}"]
@@ -150,7 +147,7 @@ class TranslationTable():
                     match = re.search(r"{{(?:t|t\+|tt|tt\+)\|([^|}]*)", data)
                     if match:
                         maybe_lang_id = match.group(1)
-                        UNKNOWN_LANGS[full_lang][maybe_lang_id] += 1
+                        self.UNKNOWN_LANGS[full_lang][maybe_lang_id] += 1
 
                     elif not data:
                         if full_lang in ALLOWED_PARENTS:
@@ -159,7 +156,7 @@ class TranslationTable():
 
                         # If the unknown language doesn't contain any data, count it in
                         # LANG_PARENTS (used to build ALLOWED_PARENTS)
-                        LANG_PARENTS[full_lang] += 1
+                        self.LANG_PARENTS[full_lang] += 1
 
                     items.append(line)
                     self.error("unexpected_language", line, lang)
@@ -186,38 +183,6 @@ class TranslationTable():
 #            self.log("botfix_formatting")
 
         return items
-
-
-    TABLE_PATTERN = re.compile(f"""(?x)(?s)   # verbose regex, dotall
-    {{{{                # {{ template opener (f-string escaped)
-    (?:{RE_TOP_TEMPLATES})   # an opening template
-    .*?
-    (?:
-      {{{{
-        (?:{RE_BOTTOM_TEMPLATES})
-        [^}}]*
-      }}}}              # closing template (included in capture)
-    |                   # OR
-    (?=
-      {{{{              # a new opening template (not captured)
-        (?:{RE_TOP_TEMPLATES})
-    )|$)
-    """)
-
-    @classmethod
-    def find_tables(cls, text):
-        yield from wiki_search(text,
-                #fr"^.*{{{{\s*({cls.RE_TOP_TEMPLATES})",
-                #fr"{{{{\s*({cls.RE_BOTTOM_TEMPLATES})\s*}}}}.*(?=(\n|$))",
-                fr"{{{{\s*({cls.RE_TOP_TEMPLATES})",
-                fr"{{{{\s*({cls.RE_BOTTOM_TEMPLATES})\s*}}}}",
-                end_required=False,
-                ignore_templates=True,
-                ignore_nowiki=True
-            )
-
-        # re search isn't used because it can't handle html comments
-        # re.findall(cls.TABLE_PATTERN, text)
 
     def __str__(self):
         return self._orig_header + "\n" + "\n".join(map(str,self.items))
