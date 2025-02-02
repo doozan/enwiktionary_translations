@@ -7,6 +7,7 @@ from autodooz.lang_ids import ALL_LANGS, ALL_LANG_IDS
 
 from .language_aliases import language_aliases as LANG_ALIASES, language_parents as ALLOWED_PARENTS
 
+
 class TranslationTable():
 
     TOP_TEMPLATES = ("trans-top", "trans-top-see", "trans-top-also", "checktrans-top", "ttbc-top")
@@ -33,6 +34,9 @@ class TranslationTable():
         self.parse_header(self._orig_header)
         self.items = self.parse_table(self._orig)
         self.check_footer(lines[-1])
+
+    def __str__(self):
+        return self._orig_header + "\n" + "\n".join(map(str,self.items))
 
     def log(self, error, line="", highlight="", language=""):
         self._log(error, self.page, self.pos, self.gloss, language, line, highlight)
@@ -184,8 +188,41 @@ class TranslationTable():
 
         return items
 
-    def __str__(self):
-        return self._orig_header + "\n" + "\n".join(map(str,self.items))
+
+    _RE_TOP_TEMPLATES = r"{{\s*(" + "|".join(TOP_TEMPLATES) + r")\s*[|}]"
+    _RE_BOTTOM_TEMPLATES = r"{{\s*(" + "|".join(BOTTOM_TEMPLATES) + r")\s*[|}]"
+
+    @classmethod
+    def is_table_start(cls, line):
+        line = re.sub("<!--.*-->", "", line)
+        return bool(re.search(cls._RE_TOP_TEMPLATES, line))
+
+    @classmethod
+    def is_table_end(cls, line):
+        line = re.sub("<!--.*-->", "", line)
+        return bool(re.search(cls._RE_BOTTOM_TEMPLATES, line))
+
+    @classmethod
+    def get_tables(cls, wikilines):
+
+        tables = []
+
+        table_start = None
+        for i, line in enumerate(wikilines):
+            if cls.is_table_start(line):
+                if table_start is not None:
+                    tables.append(wikilines[table_start:i+1])
+                table_start = i
+
+            elif cls.is_table_end(line):
+                if table_start is not None:
+                    tables.append(wikilines[table_start:i+1])
+                table_start = None
+
+        if table_start is not None:
+            tables.append(wikilines[table_start:])
+
+        return tables
 
 
 class TranslationLine():

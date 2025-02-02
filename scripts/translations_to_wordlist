@@ -20,8 +20,9 @@ Convert a translations archive into a language wordlist
 """
 
 import sys
-from enwiktionary_translations import TranslationTable
 from enwiktionary_parser.sections.pos import ALL_POS
+from enwiktionary_sectionparser.utils import wiki_splitlines
+from enwiktionary_translations import TranslationTable
 from enwiktionary_wordlist.wikiextract import WikiExtractWithRev
 from enwiktionary_wordlist.wordlist import Wordlist
 from enwiktionary_wordlist.wordlist_builder import WordlistBuilder
@@ -55,7 +56,7 @@ def main():
         if args.limit and count > args.limit:
             break
 
-        tables = list(TranslationTable.find_tables(text))
+        tables = list(TranslationTable.get_tables(list(wiki_splitlines(text))))
         if page != entry_page:
             if entry:
                 wordlist.all_entries[entry_page] = map(str.strip, entry)
@@ -64,8 +65,6 @@ def main():
 
 
         for table_lines in tables:
-            table_lines = table_lines.splitlines()
-
             table = TranslationTable(page, pos, table_lines, log_function=lambda *x: x)
             for item in [i for i in table.items if getattr(i, "lang_id", None) == args.langid]:
                 if not entry:
