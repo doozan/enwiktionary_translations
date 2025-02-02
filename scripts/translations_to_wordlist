@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2021 Jeff Doozan
+# Copyright (c) 2021-2025 Jeff Doozan
 #
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Convert a translations archive into a language wordlist
 """
 
 import sys
-from enwiktionary_translations import TranslationTable, TranslationLine, UNKNOWN_LANGS, LANG_PARENTS
+from enwiktionary_translations import TranslationTable
 from enwiktionary_parser.sections.pos import ALL_POS
 from enwiktionary_wordlist.wikiextract import WikiExtractWithRev
 from enwiktionary_wordlist.wordlist import Wordlist
