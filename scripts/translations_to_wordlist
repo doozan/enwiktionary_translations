@@ -20,7 +20,7 @@ Convert a translations archive into a language wordlist
 """
 
 import sys
-from enwiktionary_parser.sections.pos import ALL_POS
+from enwiktionary_sectionparser import ALL_POS
 from enwiktionary_sectionparser.utils import wiki_splitlines
 from enwiktionary_translations import TranslationTable
 from enwiktionary_wordlist.wikiextract import WikiExtractWithRev
