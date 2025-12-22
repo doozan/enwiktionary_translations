@@ -506,7 +506,7 @@ class Translation():
             self.error("t_missing_p1", f"{{{{{name}|")
         elif self.parent.lang_id and lang_id != self.parent.lang_id:
             # Egyptian doesn't need lang id in p2
-            if not "-egy" in name:
+            if not "-egy" in template_name:
                 self.error("wrong_language_code", f"|{lang_id}|")
 
         # If the genders were in external {{g}} tags, append them to the parameters
